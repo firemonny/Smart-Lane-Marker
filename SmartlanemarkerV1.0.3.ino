@@ -102,6 +102,7 @@ void loop()
       Detect_Vehicle = (!verify.compareTo(CAR));
       //Serial.print(verify);
       if(Detect_Vehicle == true) CurrentMicrocontroller_SM = DETECTING;   
+      // Serial.println("Detecting");
       HC12End = false;   
     }
     break;
@@ -119,7 +120,7 @@ void loop()
               countersignal=0;
               Detect_Vehicle = false;
             CurrentMicrocontroller_SM = POSTDETECTING;
-            //Serial.println("Go to non-detecting");
+           // Serial.println("Go to non-detecting");
             
             }
      break;
@@ -139,6 +140,7 @@ void loop()
               CurrentMicrocontroller_SM = NON_DETECTING;
               }
         }
+        break;
      default:
      Serial.println("Should not get to here");
      break;
@@ -146,6 +148,7 @@ void loop()
    if(newData == true)
     {                     // If Arduino's HC12 rx buffer has data
       Serial.println(receivedChars);              // Send the data to the computer
+      receivedChars[0] = "";
       newData = false;
     }
     
