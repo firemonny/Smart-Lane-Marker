@@ -9,10 +9,16 @@
     Upload code to two Arduinos connected to two computers.
     
     Transceivers must be away for 1.5 meter
-   
+
+   Update version V1.0.4 Add the Timer feature.
+   TimerOne used the online free source timer.
+   Please include Timer-r11 libray 
+   https://www.arduinolibraries.info/libraries/timer-one
  */
+ 
 #include <SoftwareSerial.h>
-enum MicorcontrollerSM {NON_DETECTING, DETECTING};
+#include <TimerOne.h>
+enum MicorcontrollerSM {NON_DETECTING, DETECTING,POSTDETECTING};
 
 // Global varaiable declaration
 const byte HC12RxdPin = 4;                  // Recieve Pin 4 on HC-12
@@ -35,6 +41,7 @@ boolean ReceiveDataInProgress = false;
 int ndx = 0;
 char rc;
 String CAR = "CAR\0";
+bool TimerStart=false;
 
 
 
@@ -47,6 +54,8 @@ SoftwareSerial HC12(HC12TxdPin,HC12RxdPin); // Create Software Serial Port
 void setup() {
   HC12ReadBuffer.reserve(64);                   // Reserve 64 bytes for Serial message input
   SerialReadBuffer.reserve(64);                 // Reserve 64 bytes for HC12 message input
+  Timer1.initialize(100000);                    //Initialize Timer
+  Timer1.setPeriod(4000000);                    //Set period to 4000000 microsecond
   pinMode(HC12SetPin, OUTPUT);                  // cofigure the HC-12 Set ping 6 to be output mode Command
   digitalWrite(HC12SetPin, HIGH);
   delay(2000);
@@ -93,33 +102,55 @@ void loop()
       Detect_Vehicle = (!verify.compareTo(CAR));
       //Serial.print(verify);
       if(Detect_Vehicle == true) CurrentMicrocontroller_SM = DETECTING;   
+      // Serial.println("Detecting");
       HC12End = false;   
     }
     break;
     
     case DETECTING:
     counter++;
-    if (counter >= 5)
+    if (counter >= 3)
     {
-      HC12.print("<000000001>");
+      HC12.print("<C0002>");
       counter = 0;
       countersignal++;
     }
-      if (countersignal >=10)
+      if (countersignal >=8)
             { 
               countersignal=0;
               Detect_Vehicle = false;
-            CurrentMicrocontroller_SM = NON_DETECTING;
-            Serial.println("Go to non-detecting");
+            CurrentMicrocontroller_SM = POSTDETECTING;
+           // Serial.println("Go to non-detecting");
+            
             }
      break;
+     case POSTDETECTING:
+      if(TimerStart == false)
+      {
+        TimerStart = true;
+        Timer1.start();
+        }
+      else{
+        unsigned long currenttime = Timer1.read();
+         if(currenttime>=800000)
+             {
+              Timer1.stop();
+              Timer1.setPeriod(2000000);
+              TimerStart=false;
+              CurrentMicrocontroller_SM = NON_DETECTING;
+              }
+        }
+        break;
      default:
      Serial.println("Should not get to here");
      break;
   }
    if(newData == true)
     {                     // If Arduino's HC12 rx buffer has data
-      Serial.println(receivedChars);              // Send the data to the computer
+      String message = String(receivedChars);
+      if(!message.compareTo(CAR)){
+      Serial.println(receivedChars);}// Send the data to the computer
+      receivedChars[0] = "\0";
       newData = false;
     }
     

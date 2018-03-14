@@ -48,10 +48,6 @@ void loop()
     if (counter>=10000){           
     HC12.print("<CAR>");
     counter =0;
-    Serial.print("Last period recieve: ");
-    Serial.print(datacounter);
-    Serial.print("/5\n");
-    datacounter=0;
     }// Send that data to serial
 
   while (HC12.available() > 0 && newData == false) {
@@ -80,9 +76,9 @@ void loop()
   }
 
   if (newData == true) {
-    Serial.print("Received:");
-    Serial.print(receivedChars);
-    Serial.print("\n");
+    String temp = String(receivedChars);
+    String message = "Received:" + temp;
+    Serial.println(message);
     receivedChars[0]='\0';
     newData = false;
   } 
