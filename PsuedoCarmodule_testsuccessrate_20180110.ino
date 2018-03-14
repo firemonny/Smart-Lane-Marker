@@ -29,7 +29,7 @@ char endMarker = '>';
 char rc;
 
 boolean newData = false;
-
+char CAR[] = "CAR";
 
 SoftwareSerial HC12(HC12TxdPin,HC12RxdPin);
 
@@ -76,9 +76,10 @@ void loop()
   }
 
   if (newData == true) {
-    String temp = String(receivedChars);
-    String message = "Received:" + temp;
+    if(!strstr(receivedChars,CAR)){
+    String message = "Received:" + String(receivedChars);
     Serial.println(message);
+    }
     receivedChars[0]='\0';
     newData = false;
   } 
